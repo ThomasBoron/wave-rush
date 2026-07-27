@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wave Rush – Live Bestenliste</title>
+<style>
+  :root{
+    --navy:#052436; --deep:#03161f; --cyan:#22d3ee; --teal:#2ab7d9;
+    --coral:#ff6b4a; --gold:#ffd24a; --foam:#eafcff; --slate:#9fc6d6;
+    --gold3:#ffcf5a; --silver:#cfe0e8; --bronze:#e39b5a;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(120% 80% at 50% -10%, #12406b 0%, #072a3d 45%, #03141d 100%);
+    color:var(--foam);
+    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    overflow:hidden; height:100vh;
+  }
+  /* Sonne + Wasser-Schimmer */
+  .sun{position:fixed; top:-140px; left:50%; transform:translateX(-50%);
+       width:520px; height:520px; border-radius:50%;
+       background:radial-gradient(circle, rgba(255,238,190,.5), rgba(255,210,140,.12) 45%, transparent 70%);
+       pointer-events:none;}
+  .waves{position:fixed; inset:0; pointer-events:none; opacity:.5;
+    background-image:repeating-linear-gradient(0deg, transparent 0 38px, rgba(140,220,245,.05) 38px 40px);}
+  .palm{position:fixed; bottom:0; font-size:210px; line-height:1; opacity:.14; filter:blur(.5px); pointer-events:none;}
+  .palm.l{left:-14px; transform:scaleX(-1);} .palm.r{right:-14px;}
+
+  .wrap{position:relative; height:100vh; display:flex; flex-direction:column; padding:2.4vh 2.4vw;}
+  header{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+  .brand{display:flex; align-items:baseline; gap:16px;}
+  .logo{
+    font-family:"Arial Black","Helvetica Neue",Impact,sans-serif; font-style:italic; font-weight:900;
+    font-size:clamp(30px,4.4vw,64px); letter-spacing:-1px; text-transform:uppercase; line-height:.9;
+    background:linear-gradient(180deg,#fff 0%,var(--gold) 45%,var(--coral) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 4px 0 rgba(255,107,74,.3));
+  }
+  .subttl{color:var(--cyan); font-weight:bold; letter-spacing:4px; text-transform:uppercase; font-size:clamp(12px,1.5vw,20px);}
+  .status{display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+  .live{display:inline-flex; align-items:center; gap:9px; font-weight:bold; letter-spacing:2px;
+        text-transform:uppercase; font-size:clamp(12px,1.4vw,17px); color:#ff8a7a;}
+  .dot{width:13px; height:13px; border-radius:50%; background:#ff5b48; box-shadow:0 0 0 0 rgba(255,91,72,.7); animation:ping 1.6s infinite;}
+  .live.off .dot{background:#7a8a92; animation:none;}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,91,72,.6)} 70%{box-shadow:0 0 0 14px rgba(255,91,72,0)} 100%{box-shadow:0 0 0 0 rgba(255,91,72,0)}}
+  .meta{color:var(--slate); font-size:clamp(12px,1.3vw,16px); text-align:right; line-height:1.4;}
+  .meta b{color:var(--foam);}
+
+  main{flex:1; display:grid; grid-template-columns:1fr 340px; gap:2.4vw; margin-top:2.2vh; min-height:0;}
+  @media (max-width:1100px){ main{grid-template-columns:1fr;} .side{display:none!important;} }
+
+  /* Podium */
+  .podium{display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:14px; align-items:end; margin-bottom:2vh;}
+  .pod{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
+       border-radius:18px 18px 0 0; padding:14px 12px; text-align:center; position:relative; overflow:hidden;}
+  .pod .medal{font-size:clamp(26px,3.4vw,44px); line-height:1;}
+  .pod .pname{font-weight:bold; font-size:clamp(15px,1.8vw,24px); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .pod .pscore{font-family:"Arial Black",sans-serif; font-style:italic; font-variant-numeric:tabular-nums;
+               font-size:clamp(20px,2.6vw,38px); line-height:1;}
+  .pod.p1{border-color:rgba(255,210,74,.6); background:linear-gradient(180deg,rgba(255,210,74,.18),rgba(255,210,74,.04)); padding-bottom:5vh;}
+  .pod.p1 .pscore{color:var(--gold3);}
+  .pod.p2{border-color:rgba(207,224,232,.4); padding-bottom:3.2vh;} .pod.p2 .pscore{color:var(--silver);}
+  .pod.p3{border-color:rgba(227,155,90,.45); padding-bottom:2.4vh;} .pod.p3 .pscore{color:var(--bronze);}
+
+  /* Liste 4+ */
+  .list{display:flex; flex-direction:column; gap:9px; overflow:hidden;}
+  .rowE{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:16px;
+        background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);
+        border-radius:14px; padding:min(1.7vh,16px) 22px;}
+  .rowE .rank{font-family:"Arial Black",sans-serif; font-style:italic; color:var(--slate);
+              font-size:clamp(18px,2vw,28px); text-align:center;}
+  .rowE .name{font-size:clamp(16px,1.9vw,26px); font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .rowE .score{font-family:"Arial Black",sans-serif; font-style:italic; color:var(--gold);
+               font-variant-numeric:tabular-nums; font-size:clamp(18px,2.1vw,30px);}
+  @keyframes flash{0%{background:rgba(34,211,238,.5); transform:scale(1.015);} 100%{background:rgba(255,255,255,.045); transform:none;}}
+  .flash{animation:flash 1.4s ease-out;}
+
+  .empty{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;
+         color:var(--slate); gap:14px; text-align:center;}
+  .empty .big{font-family:"Arial Black",sans-serif; font-style:italic; font-size:clamp(24px,3vw,44px); color:var(--foam);}
+
+  /* Seitenpanel: Mitspielen */
+  .side{display:flex; flex-direction:column; gap:20px;}
+  .card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:22px; text-align:center;}
+  .card h2{font-family:"Arial Black",sans-serif; font-style:italic; text-transform:uppercase; letter-spacing:1px;
+           font-size:clamp(18px,2vw,26px); margin-bottom:6px;
+           background:linear-gradient(180deg,var(--gold),var(--coral)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .card p{color:var(--slate); font-size:15px; margin-bottom:14px;}
+  .qr{background:#fff; border-radius:16px; padding:12px; display:inline-block; line-height:0;}
+  .qr img{width:210px; height:210px; display:block;}
+  .url{margin-top:14px; font-weight:bold; color:var(--cyan); font-size:16px; word-break:break-all;}
+  .stat{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:16px; text-align:center;}
+  .stat .num{font-family:"Arial Black",sans-serif; font-style:italic; font-size:clamp(26px,3vw,40px); color:var(--foam); line-height:1;}
+  .stat .lbl{color:var(--slate); text-transform:uppercase; letter-spacing:2px; font-size:12px; margin-top:6px;}
+</style>
+</head>
+<body>
+  <div class="sun"></div>
+  <div class="waves"></div>
+  <div class="palm l">🌴</div>
+  <div class="palm r">🌴</div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">Wave Rush</div>
+        <div class="subttl">Live-Bestenliste</div>
+      </div>
+      <div class="status">
+        <div class="live" id="live"><span class="dot"></span><span id="liveTxt">Verbinde…</span></div>
+        <div class="meta">
+          <div>Aktualisiert: <b id="ago">–</b></div>
+          <div><b id="total">0</b> Rennen gefahren</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section style="display:flex; flex-direction:column; min-height:0;">
+        <div class="podium" id="podium"></div>
+        <div class="list" id="list"></div>
+        <div class="empty" id="empty" style="display:none;">
+          <div class="big">Noch keine Ergebnisse 🌊</div>
+          <div>Sei die oder der Erste – scanne den QR-Code und leg los!</div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <div class="card">
+          <h2>Jetzt mitspielen</h2>
+          <p>QR-Code scannen &amp; sofort aufs Wasser</p>
+          <div class="qr">
+            <img id="qr" alt="QR-Code zum Spiel"
+                 src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=0&data=https%3A%2F%2Fthomasboron.github.io%2Fwave-rush%2F">
+          </div>
+          <div class="url">thomasboron.github.io/wave-rush</div>
+        </div>
+        <div class="stat">
+          <div class="num" id="topScore">–</div>
+          <div class="lbl">Höchste Punktzahl</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+<script>
+(function(){
+"use strict";
+const BLOB_URL='https://jsonblob.com/api/jsonBlob/019fa3cf-7d3a-73a5-a90d-5088d4d43127';
+const REFRESH=6000;
+let lastUpdate=0, prevKeys=new Set(), started=false;
+
+const $=id=>document.getElementById(id);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// beste Punktzahl je Name
+function topPerName(scores){
+  const best=new Map();
+  scores.forEach(e=>{ const k=e.name; if(!best.has(k)||e.score>best.get(k).score) best.set(k,e); });
+  return [...best.values()].sort((a,b)=>b.score-a.score);
+}
+
+function render(raw){
+  const scores=(raw||[]).filter(e=>e&&typeof e.score==='number');
+  $('total').textContent=scores.length;
+  const board=topPerName(scores);
+  const empty=board.length===0;
+  $('empty').style.display=empty?'flex':'none';
+  $('podium').style.display=empty?'none':'grid';
+  $('list').style.display=empty?'none':'flex';
+  $('topScore').textContent=empty?'–':board[0].score;
+  if(empty){ prevKeys=new Set(); return; }
+
+  const keyOf=e=>e.name+'|'+e.score;
+  const nowKeys=new Set(board.slice(0,12).map(keyOf));
+
+  // Podium top 3
+  const pod=$('podium'); pod.innerHTML='';
+  const order=[1,0,2]; // 2. links, 1. mitte, 3. rechts
+  order.forEach(idx=>{
+    const e=board[idx]; if(!e){ pod.appendChild(document.createElement('div')); return; }
+    const d=document.createElement('div');
+    d.className='pod p'+(idx+1);
+    d.innerHTML='<div class="medal">'+['🥇','🥈','🥉'][idx]+'</div>'+
+                '<div class="pname">'+esc(e.name)+'</div>'+
+                '<div class="pscore">'+e.score+'</div>';
+    if(started && !prevKeys.has(keyOf(e))) d.classList.add('flash');
+    pod.appendChild(d);
+  });
+
+  // Liste Platz 4–12
+  const list=$('list'); list.innerHTML='';
+  board.slice(3,12).forEach((e,i)=>{
+    const row=document.createElement('div');
+    row.className='rowE';
+    if(started && !prevKeys.has(keyOf(e))) row.classList.add('flash');
+    row.innerHTML='<div class="rank">'+(i+4)+'</div><div class="name">'+esc(e.name)+'</div><div class="score">'+e.score+'</div>';
+    list.appendChild(row);
+  });
+
+  prevKeys=nowKeys; started=true;
+}
+
+function setLive(on){
+  const el=$('live');
+  el.classList.toggle('off',!on);
+  $('liveTxt').textContent=on?'Live':'Verbindung…';
+}
+
+async function refresh(){
+  try{
+    const r=await fetch(BLOB_URL+'?_='+Date.now(),{cache:'no-store'});
+    if(!r.ok) throw 0;
+    const d=await r.json();
+    render(d.scores||[]);
+    lastUpdate=Date.now(); setLive(true);
+  }catch(e){ setLive(false); }
+}
+
+function tickAgo(){
+  if(!lastUpdate){ $('ago').textContent='–'; return; }
+  const s=Math.round((Date.now()-lastUpdate)/1000);
+  $('ago').textContent = s<2?'gerade eben':('vor '+s+'s');
+}
+
+refresh();
+setInterval(refresh, REFRESH);
+setInterval(tickAgo, 1000);
+})();
+</script>
+</body>
+</html>

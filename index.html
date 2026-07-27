@@ -126,7 +126,7 @@
     <div class="bignum" id="finalScore">0</div>
     <div id="newHi" class="newhi hidden">★ Neuer Rekord! ★</div>
     <div class="board">
-      <h3>🏆 Bestenliste</h3>
+      <h3>🏆 Bestenliste <span id="boardStatus" style="font-weight:normal;letter-spacing:0;text-transform:none;color:#9fc6d6"></span></h3>
       <div id="boardList"></div>
     </div>
     <div class="row">
@@ -158,6 +158,8 @@ const GATE_HALF  = 300;
 const GAP        = 560;
 const SAFE_DIST  = 2600;   // solange keine Hindernisse (sichere Startphase)
 const LB_KEY     = 'waveRushBoard.v1';
+// Globales Leaderboard (kostenloser JSON-Bucket, kein Konto nötig)
+const BLOB_URL   = 'https://jsonblob.com/api/jsonBlob/019fa3cf-7d3a-73a5-a90d-5088d4d43127';
 
 // ---------- Zustand ----------
 let state = 'menu';
@@ -591,13 +593,46 @@ function startGame(){
   startScreen.classList.add('hidden'); overScreen.classList.add('hidden');
   cv.focus(); window.focus();
 }
-function endGame(){
+async function endGame(){
   state='over';
-  const rank=saveScore(playerName,score);
+  const entry={name:playerName, score:score, at:Date.now()};
+  const localRank=saveScore(playerName,score);          // lokaler Fallback
   document.getElementById('finalScore').textContent=score+' Pkt';
-  document.getElementById('newHi').classList.toggle('hidden', !(rank===1 && score>0));
-  renderBoard(playerName,score);
+  document.getElementById('newHi').classList.add('hidden');
   overScreen.classList.remove('hidden');
+  // sofort lokale Liste zeigen, Status "lädt"
+  renderBoard(loadBoard().slice(0,10), entry, 'sync');
+  // dann global speichern & anzeigen
+  const res=await submitGlobal(entry);
+  if(res.ok){
+    const rank=res.board.findIndex(e=>e.at===entry.at && e.name===entry.name && e.score===entry.score)+1;
+    document.getElementById('newHi').classList.toggle('hidden', !(rank===1 && score>0));
+    renderBoard(res.board.slice(0,10), entry, 'global');
+  } else {
+    document.getElementById('newHi').classList.toggle('hidden', !(localRank===1 && score>0));
+    renderBoard(loadBoard().slice(0,10), entry, 'offline');
+  }
+}
+
+// Score in den globalen Bucket schreiben (Read-Modify-Write mit Retry + Backoff).
+// WICHTIG: bei fehlgeschlagenem Read NIE schreiben – sonst würde die Liste überschrieben.
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+async function submitGlobal(entry){
+  for(let attempt=0; attempt<4; attempt++){
+    try{
+      const cur=await fetch(BLOB_URL,{cache:'no-store'});
+      if(!cur.ok) throw new Error('read '+cur.status);      // z.B. 429 → nicht überschreiben
+      const data=await cur.json();
+      const arr=Array.isArray(data.scores)?data.scores.slice():[];
+      arr.push(entry);
+      arr.sort((a,z)=>z.score-a.score);
+      const top=arr.slice(0,200);
+      const put=await fetch(BLOB_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({scores:top})});
+      if(!put.ok) throw new Error('write '+put.status);
+      return {ok:true, board:top};
+    }catch(e){ await sleep(500*(attempt+1)); }               // Backoff, dann neuer Versuch
+  }
+  return {ok:false};
 }
 
 // ---------- Leaderboard ----------
@@ -609,23 +644,27 @@ function saveScore(name,sc){
   try{ localStorage.setItem(LB_KEY,JSON.stringify(top)); }catch(e){}
   return top.findIndex(e=>e.at===entry.at)+1;
 }
-function renderBoard(hlName,hlScore){
-  const b=loadBoard().slice(0,10); const el=document.getElementById('boardList'); el.innerHTML='';
+function renderBoard(list, hlEntry, status){
+  const el=document.getElementById('boardList'); el.innerHTML='';
+  const st=document.getElementById('boardStatus');
+  if(st) st.textContent = status==='global' ? '· 🌍 global' : status==='offline' ? '· 📴 offline (nur dieses Gerät)' : status==='sync' ? '· ⏳ synchronisiere…' : '';
   let hl=false;
-  b.forEach((e,i)=>{
+  list.forEach((e,i)=>{
     const row=document.createElement('div');
-    const me=(!hl && e.name===hlName && e.score===hlScore); if(me)hl=true;
+    const me=(!hl && hlEntry && e.name===hlEntry.name && e.score===hlEntry.score && (e.at===hlEntry.at || status!=='global')); if(me)hl=true;
     row.className='lb'+(i<3?' gold':'')+(me?' me':'');
     const medal=['🥇','🥈','🥉'][i]||(i+1)+'.';
     row.innerHTML='<span class="rk">'+medal+'</span><span class="nm">'+escapeHtml(e.name)+'</span><span class="sc">'+e.score+'</span>';
     el.appendChild(row);
   });
-  if(b.length===0) el.innerHTML='<div class="lb"><span></span><span class="nm" style="color:#9fc6d6">Noch keine Einträge – sei die/der Erste!</span><span></span></div>';
+  if(list.length===0) el.innerHTML='<div class="lb"><span></span><span class="nm" style="color:#9fc6d6">Noch keine Einträge – sei die/der Erste!</span><span></span></div>';
 }
 function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 async function exportCsv(){
-  const b=loadBoard(); let csv='Rang,Name,Punkte,Datum\n';
+  let b=loadBoard();
+  try{ const r=await fetch(BLOB_URL,{cache:'no-store'}); const d=await r.json(); if(Array.isArray(d.scores)) b=d.scores; }catch(e){}
+  let csv='Rang,Name,Punkte,Datum\n';
   b.forEach((e,i)=>{ const d=new Date(e.at).toLocaleString('de-DE');
     csv+=(i+1)+',"'+String(e.name).replace(/"/g,'""')+'",'+e.score+',"'+d+'"\n'; });
   const fname='wave-rush-bestenliste.csv';
