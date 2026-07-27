@@ -145,7 +145,7 @@
       <b>Tempo automatisch</b>
       <b><kbd>F11</kbd> Vollbild</b>
     </div>
-    <div class="build">Build 5</div>
+    <div class="build">Build 6</div>
   </div>
 
   <!-- GAME OVER -->
@@ -431,6 +431,15 @@ function drawSky(){
 
 function drawWater(){
   ctx.fillStyle='#000'; ctx.fillRect(0,HORIZON,W,H-HORIZON);
+  // Kern-Glow läuft über den Horizont hinaus weiter – sonst harte Kante quer durchs Bild
+  let cg=ctx.createRadialGradient(W/2,HORIZON,0,W/2,HORIZON,W*0.45);
+  cg.addColorStop(0,'rgba(255,150,40,.40)'); cg.addColorStop(.22,'rgba(236,102,2,.17)');
+  cg.addColorStop(.6,'rgba(236,102,2,.04)'); cg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=cg; ctx.fillRect(0,HORIZON,W,H-HORIZON);
+  // Himmelston läuft weich ins Wasser aus – weicher Übergang statt Naht
+  let tg=ctx.createLinearGradient(0,HORIZON,0,HORIZON+110);
+  tg.addColorStop(0,'rgba(10,44,54,.20)'); tg.addColorStop(1,'rgba(10,44,54,0)');
+  ctx.fillStyle=tg; ctx.fillRect(0,HORIZON,W,110);
   // Reflexion des orangen Kerns
   let rg=ctx.createLinearGradient(0,HORIZON,0,H);
   rg.addColorStop(0,'rgba(255,140,30,.34)'); rg.addColorStop(.5,'rgba(236,102,2,.09)');
