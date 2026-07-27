@@ -40,6 +40,11 @@
   }
   .tag{ color:var(--cyan); font-weight:bold; letter-spacing:3px; text-transform:uppercase; font-size:clamp(11px,1.6vw,15px); }
   .sub{ color:var(--slate); max-width:52ch; line-height:1.5; font-size:clamp(13px,1.8vw,16px); }
+  .legend{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:660px; }
+  .leg{ display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.05);
+        border:1px solid rgba(255,255,255,.14); border-radius:12px; padding:8px 13px; font-size:14px; color:var(--foam); }
+  .leg .ic{ font-size:18px; } .leg .pts{ font-weight:bold; }
+  .leg.good .pts{ color:#8ff0a4; } .leg.gold .pts{ color:var(--gold); } .leg.bad .pts{ color:#ff8a7a; } .leg.slow .pts{ color:#e9c46a; }
   .keys{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:2px; }
   .keys b{
     display:inline-flex; align-items:center; gap:8px;
@@ -110,7 +115,15 @@
   <div id="startScreen" class="overlay">
     <div class="tag">Jetski · Wave Racer</div>
     <div class="logo">Wave&nbsp;Rush</div>
-    <div class="sub">Fahr in <b>45&nbsp;Sekunden</b> durch die Boje-Tore, schnapp dir die Sterne und spring über Rampen. Weiche den Felsen aus – und pass auf die Sandbänke auf, die bremsen dich!</div>
+    <div class="sub">Lenke mit <b>◀ ▶</b> durch die Boje-Tore. Das Tempo läuft automatisch – du sammelst in <b>45&nbsp;Sekunden</b> so viele Punkte wie möglich:</div>
+    <div class="legend">
+      <span class="leg good"><span class="ic">⛩️</span> Tor durchfahren <span class="pts">+100</span></span>
+      <span class="leg gold"><span class="ic">🎯</span> Tor mittig <span class="pts">Bonus</span></span>
+      <span class="leg gold"><span class="ic">⭐</span> Stern <span class="pts">+75</span></span>
+      <span class="leg"><span class="ic">🛫</span> Rampe <span class="pts">Big Air</span></span>
+      <span class="leg bad"><span class="ic">🪨</span> Felsen ausweichen <span class="pts">−30</span></span>
+      <span class="leg slow"><span class="ic">🏖️</span> Sandbank <span class="pts">bremst</span></span>
+    </div>
     <input id="name" maxlength="14" placeholder="Dein Name" autocomplete="off" spellcheck="false">
     <button class="btn" id="startBtn">Los geht's ▸</button>
     <div class="keys">
@@ -151,10 +164,10 @@ const CAMH_FOCAL = 84000;
 const FOCAL      = 300;
 const PLAYER_DZ  = 310;
 const FAR        = 2200;
-const SPEED      = 1250;
-const STEER      = 1500;
+const SPEED      = 1050;
+const STEER      = 1450;
 const COURSE_HW  = 1650;
-const GATE_HALF  = 300;
+const GATE_HALF  = 320;
 const GAP        = 560;
 const SAFE_DIST  = 2600;   // solange keine Hindernisse (sichere Startphase)
 const LB_KEY     = 'waveRushBoard.v1';
@@ -165,7 +178,7 @@ const BLOB_URL   = 'https://jsonblob.com/api/jsonBlob/019fa3cf-7d3a-73a5-a90d-50
 let state = 'menu';
 let playerName = '';
 let px, timeLeft, score, streak, dist, spawnAcc, objs, particles, texts;
-let air, airT, bob, camShake, speedMul, gulls;
+let air, airT, bob, camShake, speedMul, gulls, countdown;
 let keys = {};
 let pattern = 0;
 
@@ -197,9 +210,8 @@ function spawnAt(dz, warmup){
   } else if(kind==='ramp'){
     objs.push({type:'ramp', dz, x:rand(-700,700), done:false});
   } else if(kind==='rock'){
-    const n = 1 + (Math.random()<0.35?1:0);
-    for(let i=0;i<n;i++)
-      objs.push({type:'rock', dz:dz-i*46, x:rand(-(COURSE_HW-260),COURSE_HW-260), done:false, seed:Math.random()});
+    // nur ein einzelner Felsen – immer umfahrbar
+    objs.push({type:'rock', dz, x:rand(-(COURSE_HW-260),COURSE_HW-260), done:false, seed:Math.random()});
   } else if(kind==='sand'){
     objs.push({type:'sand', dz, x:rand(-(COURSE_HW-350),COURSE_HW-350), done:false, seed:Math.random()});
   }
@@ -227,7 +239,8 @@ addEventListener('pointerup', ()=>{ keys._t=null; });
 let last=performance.now();
 function loop(now){
   const dt=Math.min(0.05,(now-last)/1000); last=now;
-  if(state==='play') update(dt);
+  if(state==='count'){ countdown-=dt; bob+=dt*3; gulls.forEach(g=>{ g.x+=g.v*dt; if(g.x>W+30){g.x=-30;g.y=rand(30,130);} }); if(countdown<=0) state='play'; }
+  else if(state==='play') update(dt);
   draw();
   requestAnimationFrame(loop);
 }
@@ -272,26 +285,27 @@ function update(dt){
 
 function resolve(o){
   const dx=Math.abs(o.x-px);
+  const sx=project(PLAYER_DZ, o.x-px).sx;
   if(o.type==='gate'){
     if(dx<GATE_HALF){
       streak++;
       let g=100+Math.floor(streak/3)*25;
-      if(dx<40){ g+=50; pop('PERFEKT +'+g,'#ffd24a'); } else pop('+'+g,'#8ff0a4');
+      if(dx<45){ g+=50; pop('PERFEKT +'+g,'#ffd24a',sx); } else pop('+'+g,'#8ff0a4',sx);
       score+=g; burst(o.x,'#8ff0a4');
-    } else { streak=0; pop('DANEBEN','#ff6b6b'); }
+    } else { streak=0; pop('DANEBEN',' #ff8a7a',sx); }
   } else if(o.type==='star'){
-    if(dx<210){ score+=75; streak++; pop('★ +75','#ffd24a'); burst(o.x,'#ffd24a'); }
+    if(dx<210){ score+=75; streak++; pop('+75',' #ffd24a',sx); burst(o.x,'#ffd24a'); }
   } else if(o.type==='ramp'){
-    if(dx<260){ air=1.15; airT=0; score+=60; pop('BIG AIR!','#ffd24a'); }
+    if(dx<260){ air=1.15; airT=0; score+=60; pop('BIG AIR! +60','#ffd24a',W/2); }
   } else if(o.type==='rock'){
-    if(dx<190 && air<=0){ streak=0; score=Math.max(0,score-30); camShake=.4; pop('-30 💥','#ff5252'); burst(o.x,'#ff8a5c'); }
+    if(dx<190 && air<=0){ streak=0; score=Math.max(0,score-30); camShake=.4; pop('−30','#ff6b6b',sx); burst(o.x,'#ff8a5c'); }
   } else if(o.type==='sand'){
-    if(dx<210 && air<=0){ speedMul=0.4; camShake=.15; pop('SANDBANK! 🏖','#e9c46a');
+    if(dx<210 && air<=0){ speedMul=0.4; camShake=.15; pop('LANGSAM','#e9c46a',W/2);
       for(let i=0;i<10;i++) particles.push({x:W/2+rand(-24,24),y:project(PLAYER_DZ,0).sy,life:.5,r:rand(3,6),vy:rand(-90,-20),vx:rand(-120,120),c:'#e9c46a'}); }
   }
 }
 
-function pop(t,c){ texts.push({t,c,x:W/2,y:HORIZON+150,life:1}); }
+function pop(t,c,x){ texts.push({t,c:c.trim(),x:(x==null?W/2:Math.max(70,Math.min(W-70,x))),y:project(PLAYER_DZ,0).sy-70,life:1.25}); }
 function burst(worldX,c){
   const p=project(PLAYER_DZ+10, worldX-px);
   for(let i=0;i<14;i++) particles.push({x:p.sx,y:p.sy,life:.5,r:rand(3,7),vy:rand(-160,-40),vx:rand(-140,140),c});
@@ -314,11 +328,14 @@ function draw(){
   drawParticles();
   if(state!=='menu') drawPlayer();
 
-  ctx.textAlign='center';
+  ctx.textAlign='center'; ctx.lineJoin='round';
   texts.forEach(tx=>{
-    ctx.globalAlpha=Math.max(0,tx.life);
-    ctx.fillStyle=tx.c; ctx.font='900 italic 34px "Arial Black",sans-serif';
-    ctx.fillText(tx.t,tx.x,tx.y); tx.y-=1.4; tx.life-=.018;
+    ctx.globalAlpha=Math.max(0,Math.min(1,tx.life*1.4));
+    const pop=tx.life>1?1+(tx.life-1)*1.2:1;   // kurzer Einpop
+    ctx.font='900 italic '+Math.round(42*pop)+'px "Arial Black",sans-serif';
+    ctx.lineWidth=6; ctx.strokeStyle='rgba(3,20,28,.8)'; ctx.strokeText(tx.t,tx.x,tx.y);
+    ctx.fillStyle=tx.c; ctx.fillText(tx.t,tx.x,tx.y);
+    tx.y-=1.7; tx.life-=.016;
   });
   texts=texts.filter(t=>t.life>0);
   ctx.globalAlpha=1;
@@ -330,6 +347,22 @@ function draw(){
   ctx.restore();
 
   if(state==='play') drawHUD();
+  if(state==='count') drawCountdown();
+}
+
+function drawCountdown(){
+  const n=Math.ceil(countdown), frac=countdown-Math.floor(countdown);
+  ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.globalAlpha=0.35; ctx.fillStyle='#03141d';
+  ctx.beginPath(); ctx.arc(W/2,H*0.42,120,0,7); ctx.fill();
+  ctx.globalAlpha=Math.min(1,frac*1.6);
+  const sz=120+frac*60;
+  ctx.font='900 italic '+Math.round(sz)+'px "Arial Black",sans-serif';
+  ctx.lineWidth=8; ctx.strokeStyle='rgba(3,20,28,.8)'; ctx.strokeText(n,W/2,H*0.42);
+  ctx.fillStyle=n===1?'#8ff0a4':'#ffd24a'; ctx.fillText(n,W/2,H*0.42);
+  ctx.globalAlpha=1; ctx.fillStyle='#eafcff'; ctx.font='bold 22px "Trebuchet MS",sans-serif';
+  ctx.fillText('Bereit machen…',W/2,H*0.42-150);
+  ctx.textBaseline='alphabetic'; ctx.restore();
 }
 
 function drawSky(){
@@ -449,6 +482,22 @@ function drawObj(o){
   if(p.sy<HORIZON-2||p.scale<=0) return;
   const s=p.scale;
   if(o.type==='gate'){
+    if(!o.done){
+      const half=GATE_HALF*s, a=Math.max(.18,Math.min(.85,(FAR-o.dz)/1400));
+      // grüne Durchfahrts-Linie
+      ctx.strokeStyle='rgba(120,255,170,'+a+')'; ctx.lineWidth=Math.max(2,s*10);
+      ctx.beginPath(); ctx.moveTo(p.sx-half,p.sy); ctx.lineTo(p.sx+half,p.sy); ctx.stroke();
+      // pulsierender Pfeil über der Lücke = "hier durch"
+      if(o.dz<1550){
+        const pulse=Math.sin(bob*2+o.dz*0.01)*0.5+0.5, aw=Math.max(9,s*80);
+        const ay=p.sy-Math.max(34,s*160)-pulse*Math.max(4,s*40);
+        ctx.fillStyle='rgba(130,255,175,'+(a*0.95)+')';
+        ctx.beginPath();
+        ctx.moveTo(p.sx,ay+aw*0.7); ctx.lineTo(p.sx-aw*0.7,ay-aw*0.4); ctx.lineTo(p.sx-aw*0.32,ay-aw*0.4);
+        ctx.lineTo(p.sx,ay+aw*0.12); ctx.lineTo(p.sx+aw*0.32,ay-aw*0.4); ctx.lineTo(p.sx+aw*0.7,ay-aw*0.4);
+        ctx.closePath(); ctx.fill();
+      }
+    }
     drawBuoy(o.x-GATE_HALF,o.dz,'#ff5252');
     drawBuoy(o.x+GATE_HALF,o.dz,'#ffd24a');
   } else if(o.type==='star'){
@@ -466,9 +515,21 @@ function drawObj(o){
       ctx.lineTo(p.sx,yy+h*0.05); ctx.lineTo(p.sx-w*0.16,yy); ctx.closePath(); ctx.fill(); }
   } else if(o.type==='rock'){
     drawRock(p.sx,p.sy,s,o.seed);
+    if(!o.done && o.dz<1600) warn(p.sx,p.sy,s);
   } else if(o.type==='sand'){
     drawSandbank(p.sx,p.sy,s,o.seed);
+    if(!o.done && o.dz<1600) warn(p.sx,p.sy,s);
   }
+}
+
+// Warn-Symbol (rotes Dreieck mit !) über Hindernissen = "ausweichen"
+function warn(sx,sy,s){
+  const w=Math.max(7,s*58), y=sy-Math.max(26,s*250);
+  ctx.fillStyle='rgba(255,72,62,.92)';
+  ctx.beginPath(); ctx.moveTo(sx,y-w*0.8); ctx.lineTo(sx+w*0.7,y+w*0.5); ctx.lineTo(sx-w*0.7,y+w*0.5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='900 '+Math.max(6,w*1.05)+'px Arial'; ctx.fillText('!',sx,y+w*0.04);
+  ctx.textBaseline='alphabetic';
 }
 
 function blob(sx,sy,rx,ry){ ctx.beginPath(); ctx.ellipse(sx,sy,rx,ry,0,0,7); ctx.fill(); }
@@ -589,7 +650,7 @@ const nameInput=document.getElementById('name');
 
 function startGame(){
   playerName=(nameInput.value.trim()||'Gast').slice(0,14);
-  reset(); state='play';
+  reset(); countdown=3.0; state='count';
   startScreen.classList.add('hidden'); overScreen.classList.add('hidden');
   cv.focus(); window.focus();
 }
