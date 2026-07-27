@@ -143,8 +143,7 @@
       <div id="boardList"></div>
     </div>
     <div class="row">
-      <button class="btn" id="againBtn">Nochmal ▸</button>
-      <button class="ghost" id="menuBtn">Menü</button>
+      <button class="btn" id="againBtn">Nächste:r Spieler:in ▸</button>
       <button class="ghost" id="csvBtn">Ergebnisse als CSV</button>
     </div>
   </div>
@@ -734,10 +733,16 @@ async function exportCsv(){
   a.href=URL.createObjectURL(blob); a.download=fname; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 
+function toMenu(){
+  state='menu';
+  overScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  nameInput.value='';          // Namensfeld leeren für die/den nächste:n Spieler:in
+  nameInput.focus();
+}
 document.getElementById('startBtn').onclick=startGame;
-document.getElementById('againBtn').onclick=startGame;
+document.getElementById('againBtn').onclick=toMenu;
 document.getElementById('csvBtn').onclick=exportCsv;
-document.getElementById('menuBtn').onclick=()=>{ state='menu'; overScreen.classList.add('hidden'); startScreen.classList.remove('hidden'); nameInput.focus(); };
 nameInput.addEventListener('keydown',e=>{ if(e.key==='Enter') startGame(); });
 
 nameInput.focus();
