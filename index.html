@@ -1,44 +1,50 @@
 <style>
   :root{
-    --navy:#052436; --deep:#03161f; --cyan:#22d3ee; --teal:#2ab7d9;
-    --coral:#ff6b4a; --gold:#ffd24a; --foam:#eafcff;
-    --slate:#8fb6c6;
+    /* Pulse 2026 · Make Waves – Siemens Healthineers */
+    --navy:#05171d; --deep:#000000; --cyan:#19b7c4; --teal:#0e8f9c;
+    --coral:#ec6602; --gold:#f7a600; --foam:#ffffff;
+    --slate:#9fb1b7; --orange-bright:#ff7a1a;
   }
   *{box-sizing:border-box;}
   #stage{
-    position:fixed; inset:0; background:#03161f;
+    position:fixed; inset:0; background:#000;
     display:flex; align-items:center; justify-content:center;
     overflow:hidden;
-    font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+    font-family:"Arial","Helvetica Neue",Helvetica,system-ui,sans-serif;
     color:var(--foam);
   }
   #game{
     display:block;
     width:min(100vw, calc(100vh * 1.6));
     height:min(100vh, calc(100vw / 1.6));
-    background:#03161f;
+    background:#000;
     touch-action:none;
   }
   .overlay{
     position:absolute; inset:0;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:18px; text-align:center;
-    background:radial-gradient(ellipse at 50% 35%, rgba(9,52,74,.72), rgba(3,14,20,.94));
-    backdrop-filter:blur(3px);
+    background:radial-gradient(ellipse at 62% 42%, rgba(236,102,2,.14), rgba(0,0,0,0) 42%),
+              radial-gradient(ellipse at 42% 60%, rgba(25,183,196,.12), rgba(0,0,0,0) 46%),
+              rgba(0,0,0,.82);
+    backdrop-filter:blur(2px);
     padding:24px;
   }
+  /* Marken-Logo-Platzhalter oben rechts (durch offizielles Asset ersetzen) */
+  .brandmark{ position:absolute; top:22px; right:26px; text-align:right; line-height:1; z-index:3; }
+  .brandmark .l1{ font-weight:800; letter-spacing:1px; font-size:clamp(13px,1.7vw,19px); color:#fff; }
+  .brandmark .l2{ font-weight:600; letter-spacing:.5px; font-size:clamp(12px,1.5vw,17px); color:var(--coral); }
+  .brandmark .ph{ margin-top:3px; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:#6b7b82; }
   .overlay.hidden{display:none;}
   .logo{
     font-family:"Arial Black","Helvetica Neue",Impact,sans-serif;
-    font-style:italic; font-weight:900;
-    font-size:clamp(38px,8vw,86px); line-height:.92;
-    letter-spacing:-1px; text-transform:uppercase;
-    background:linear-gradient(180deg,#fff 0%,var(--gold) 45%,var(--coral) 100%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 4px 0 rgba(255,107,74,.35)) drop-shadow(0 10px 22px rgba(0,0,0,.5));
-    text-wrap:balance;
+    font-style:normal; font-weight:900;
+    font-size:clamp(40px,8.4vw,92px); line-height:.9;
+    letter-spacing:-1.5px; text-transform:uppercase; color:#fff;
+    text-wrap:balance; text-shadow:0 6px 30px rgba(0,0,0,.6);
   }
-  .tag{ color:var(--cyan); font-weight:bold; letter-spacing:3px; text-transform:uppercase; font-size:clamp(11px,1.6vw,15px); }
+  .accent{ width:74px; height:5px; background:var(--coral); border-radius:3px; }
+  .tag{ color:var(--cyan); font-weight:800; letter-spacing:4px; text-transform:uppercase; font-size:clamp(11px,1.6vw,15px); }
   .sub{ color:var(--slate); max-width:52ch; line-height:1.5; font-size:clamp(13px,1.8vw,16px); }
   .legend{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:660px; }
   .leg{ display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.05);
@@ -60,39 +66,39 @@
     width:min(360px,80vw); font-size:20px; text-align:center;
     padding:14px 16px; border-radius:14px;
     background:rgba(255,255,255,.06); color:#fff;
-    border:2px solid rgba(34,211,238,.5); outline:none;
+    border:2px solid rgba(25,183,196,.55); outline:none;
     font-family:inherit; letter-spacing:1px;
   }
-  input#name:focus{ border-color:var(--cyan); box-shadow:0 0 0 4px rgba(34,211,238,.18); }
+  input#name:focus{ border-color:var(--cyan); box-shadow:0 0 0 4px rgba(25,183,196,.18); }
   button.btn{
-    font-family:"Arial Black",sans-serif; font-style:italic; font-weight:900;
-    text-transform:uppercase; letter-spacing:1px;
-    font-size:clamp(18px,2.4vw,24px);
-    color:#04202b; cursor:pointer;
-    background:linear-gradient(180deg,var(--gold),var(--coral));
-    border:none; border-radius:16px; padding:16px 40px;
-    box-shadow:0 6px 0 #b23a22, 0 14px 26px rgba(0,0,0,.45);
+    font-family:"Arial","Helvetica Neue",sans-serif; font-style:normal; font-weight:800;
+    text-transform:uppercase; letter-spacing:1.5px;
+    font-size:clamp(17px,2.3vw,23px);
+    color:#fff; cursor:pointer;
+    background:linear-gradient(180deg,var(--orange-bright),var(--coral));
+    border:none; border-radius:14px; padding:16px 40px;
+    box-shadow:0 6px 0 #a8480a, 0 14px 26px rgba(0,0,0,.5);
     transition:transform .06s ease, box-shadow .06s ease;
   }
-  button.btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #b23a22, 0 8px 14px rgba(0,0,0,.4); }
+  button.btn:active{ transform:translateY(4px); box-shadow:0 2px 0 #a8480a, 0 8px 14px rgba(0,0,0,.4); }
   button.btn:focus-visible{ outline:3px solid var(--cyan); outline-offset:3px; }
   button.ghost{
     background:transparent; color:var(--cyan);
-    box-shadow:none; border:2px solid rgba(34,211,238,.5);
-    font-size:15px; padding:11px 22px;
+    box-shadow:none; border:2px solid rgba(25,183,196,.55);
+    font-size:15px; padding:11px 22px; text-transform:uppercase; letter-spacing:1px; font-weight:700;
   }
   button.ghost:active{ transform:translateY(2px); box-shadow:none; }
   .row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; align-items:center; }
 
-  .result{ font-family:"Arial Black",sans-serif; font-style:italic; font-size:clamp(30px,6vw,64px);
-           background:linear-gradient(180deg,#fff,var(--gold)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .result{ font-family:"Arial Black",sans-serif; font-style:normal; text-transform:uppercase; letter-spacing:-.5px;
+           font-size:clamp(30px,6vw,64px); color:#fff; }
   .bignum{ font-size:clamp(40px,9vw,80px); font-weight:900; font-family:"Arial Black",sans-serif;
-           color:var(--foam); line-height:1; }
+           color:var(--coral); line-height:1; }
   .newhi{ color:var(--gold); font-weight:bold; letter-spacing:2px; text-transform:uppercase; animation:pulse 1s infinite; }
   @keyframes pulse{ 50%{opacity:.4} }
   .board{
-    width:min(460px,90vw); background:rgba(4,26,36,.6);
-    border:1px solid rgba(34,211,238,.25); border-radius:16px; padding:10px 6px;
+    width:min(460px,90vw); background:rgba(0,0,0,.55);
+    border:1px solid rgba(25,183,196,.3); border-radius:16px; padding:10px 6px;
     max-height:38vh; overflow-y:auto;
   }
   .board h3{ margin:6px 0 10px; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; font-size:13px; }
@@ -113,8 +119,11 @@
 
   <!-- START -->
   <div id="startScreen" class="overlay">
-    <div class="tag">Jetski · Wave Racer</div>
+    <!-- Logo-Platzhalter: durch offizielles SIEMENS-Healthineers-Logo (SVG/PNG) ersetzen -->
+    <div class="brandmark"><div class="l1">SIEMENS</div><div class="l2">Healthineers</div><div class="ph">Logo hier einsetzen</div></div>
+    <div class="tag">Pulse 2026 · Make Waves</div>
     <div class="logo">Wave&nbsp;Rush</div>
+    <div class="accent"></div>
     <div class="sub">Lenke mit <b>◀ ▶</b> durch die Boje-Tore. Das Tempo läuft automatisch – du sammelst in <b>45&nbsp;Sekunden</b> so viele Punkte wie möglich:</div>
     <div class="legend">
       <span class="leg good"><span class="ic">⛩️</span> Tor durchfahren <span class="pts">+100</span></span>
@@ -135,6 +144,8 @@
 
   <!-- GAME OVER -->
   <div id="overScreen" class="overlay hidden">
+    <div class="brandmark"><div class="l1">SIEMENS</div><div class="l2">Healthineers</div><div class="ph">Logo hier einsetzen</div></div>
+    <div class="tag">Pulse 2026 · Make Waves</div>
     <div class="result">Ziel! 🏁</div>
     <div class="bignum" id="finalScore">0</div>
     <div id="newHi" class="newhi hidden">★ Neuer Rekord! ★</div>
@@ -616,7 +627,7 @@ function drawPlayer(){
   ctx.fillStyle=hull;
   ctx.beginPath(); ctx.moveTo(0,-46); ctx.quadraticCurveTo(26,-8,20,34); ctx.lineTo(-20,34); ctx.quadraticCurveTo(-26,-8,0,-46); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#eafcff'; ctx.beginPath(); ctx.moveTo(0,-40); ctx.lineTo(8,26); ctx.lineTo(-8,26); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#22d3ee'; ctx.beginPath(); ctx.moveTo(0,-30); ctx.lineTo(4,20); ctx.lineTo(-4,20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#19b7c4'; ctx.beginPath(); ctx.moveTo(0,-30); ctx.lineTo(4,20); ctx.lineTo(-4,20); ctx.closePath(); ctx.fill();
   ctx.fillStyle='#0b2a36'; ctx.beginPath(); ctx.arc(0,-4,9,0,7); ctx.fill();
   ctx.fillStyle='#ffd24a'; ctx.beginPath(); ctx.arc(0,-4,9,Math.PI*1.15,Math.PI*1.85); ctx.fill();
   ctx.fillStyle='#14454f'; ctx.beginPath(); ctx.moveTo(-9,6); ctx.quadraticCurveTo(0,2,9,6); ctx.lineTo(7,24); ctx.lineTo(-7,24); ctx.closePath(); ctx.fill();
@@ -632,7 +643,7 @@ function drawHUD(){
   ctx.fillStyle=timeLeft<10?'#ff6b6b':'#fff'; ctx.fillText(timeLeft.toFixed(1)+'s',W-30,50);
   const bw=W-64;
   ctx.fillStyle='rgba(255,255,255,.14)'; roundRect(32,64,bw,10,5); ctx.fill();
-  ctx.fillStyle=timeLeft<10?'#ff6b6b':'#22d3ee'; roundRect(32,64,bw*(timeLeft/GAME_TIME),10,5); ctx.fill();
+  ctx.fillStyle=timeLeft<10?'#ff6b6b':'#19b7c4'; roundRect(32,64,bw*(timeLeft/GAME_TIME),10,5); ctx.fill();
   ctx.textAlign='center';
   if(air>0){ ctx.font='900 italic 30px "Arial Black",sans-serif'; ctx.fillStyle='#ffd24a'; ctx.fillText('✈ BIG AIR',W/2,50); }
   else if(speedMul<0.85){ ctx.font='900 italic 28px "Arial Black",sans-serif'; ctx.fillStyle='#e9c46a'; ctx.fillText('🏖 LANGSAM',W/2,50); }
