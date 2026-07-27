@@ -402,12 +402,12 @@ function drawSky(){
   // Konzentrische Ripple-Ringe – Signaturmotiv "Make Waves"
   ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,HORIZON); ctx.clip();
   const phase=(dist*0.00028)%1;
-  for(let i=0;i<10;i++){
-    const t=(i+phase)/10, rr=t*330, a=(1-t)*0.5;
-    ctx.strokeStyle = (i%2) ? 'rgba(25,183,196,'+(a*0.55).toFixed(3)+')'
-                            : 'rgba(236,102,2,'+(a*0.7).toFixed(3)+')';
+  for(let i=0;i<12;i++){
+    const t=(i+phase)/12, rr=t*460, a=0.44*(1-t*0.5);   // äußere Ringe bleiben sichtbar
+    ctx.strokeStyle = (i%2) ? 'rgba(25,183,196,'+(a*0.6).toFixed(3)+')'
+                            : 'rgba(236,102,2,'+(a*0.75).toFixed(3)+')';
     ctx.lineWidth=1.4;
-    ctx.beginPath(); ctx.ellipse(cx,cy,rr*1.9,rr*0.5,0,Math.PI,0); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,cy,rr*1.9,rr*0.66,0,Math.PI,0); ctx.stroke();
   }
   ctx.restore();
   // Horizontlinie: teal → orange → teal
@@ -664,10 +664,11 @@ function drawHUD(){
   ctx.save(); ctx.letterSpacing='2px'; ctx.fillText('PUNKTE',25,46); ctx.restore();
   ctx.textAlign='right'; ctx.font='900 23px "Arial Black",sans-serif';
   ctx.fillStyle=timeLeft<10?'#ff4326':'#fff'; ctx.fillText(timeLeft.toFixed(1)+'s',W-24,33);
-  const bx=24, by=54, bw=W-48, bh=5;
+  // Timer-Balken am UNTEREN Rand – oben bleibt der Himmel frei
+  const bx=24, by=H-16, bw=W-48, bh=5;
   ctx.fillStyle='rgba(255,255,255,.12)'; roundRect(bx,by,bw,bh,bh/2); ctx.fill();
   ctx.save();
-  ctx.shadowColor=timeLeft<10?'rgba(255,67,38,.9)':'rgba(25,183,196,.9)'; ctx.shadowBlur=10;
+  ctx.shadowColor=timeLeft<10?'rgba(255,67,38,.9)':'rgba(25,183,196,.9)'; ctx.shadowBlur=12;
   ctx.fillStyle=timeLeft<10?'#ff4326':'#19b7c4'; roundRect(bx,by,bw*(timeLeft/GAME_TIME),bh,bh/2); ctx.fill();
   ctx.restore();
   ctx.textAlign='center'; ctx.font='900 19px "Arial Black",sans-serif';
