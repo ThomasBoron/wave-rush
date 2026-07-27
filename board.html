@@ -22,11 +22,14 @@
     font-family:"Arial","Helvetica Neue",Helvetica,system-ui,sans-serif;
     overflow:hidden; height:100vh;
   }
-  .sun{position:fixed; top:-180px; right:-60px; width:560px; height:560px; border-radius:50%;
-       background:radial-gradient(circle, rgba(255,150,60,.35), rgba(236,102,2,.10) 45%, transparent 70%);
-       pointer-events:none;}
-  .waves{position:fixed; inset:0; pointer-events:none; opacity:.4;
-    background-image:repeating-linear-gradient(0deg, transparent 0 38px, rgba(255,255,255,.03) 38px 40px);}
+  /* Signaturmotiv: konzentrische Ripple-Ringe um einen glühenden Kern */
+  .sun{position:fixed; inset:0; pointer-events:none;
+       background:
+         repeating-radial-gradient(circle at 78% 34%, rgba(236,102,2,.10) 0 2px, rgba(0,0,0,0) 2px 30px),
+         repeating-radial-gradient(circle at 78% 34%, rgba(25,183,196,.07) 0 2px, rgba(0,0,0,0) 2px 52px),
+         radial-gradient(circle at 78% 34%, rgba(255,150,50,.34), rgba(0,0,0,0) 26%);}
+  .waves{position:fixed; inset:0; pointer-events:none; opacity:.5;
+    background-image:repeating-linear-gradient(0deg, transparent 0 38px, rgba(25,183,196,.045) 38px 40px);}
 
   .wrap{position:relative; height:100vh; display:flex; flex-direction:column; padding:2.4vh 2.4vw;}
   header{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;}
@@ -46,11 +49,11 @@
   .brandmark .l2{font-weight:600; letter-spacing:.5px; font-size:clamp(13px,1.5vw,18px); color:var(--coral);}
   .brandmark .ph{margin-top:3px; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:#6b7b82;}
   .status{display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
-  .live{display:inline-flex; align-items:center; gap:9px; font-weight:bold; letter-spacing:2px;
-        text-transform:uppercase; font-size:clamp(12px,1.4vw,17px); color:#ff8a7a;}
-  .dot{width:13px; height:13px; border-radius:50%; background:#ff5b48; box-shadow:0 0 0 0 rgba(255,91,72,.7); animation:ping 1.6s infinite;}
-  .live.off .dot{background:#7a8a92; animation:none;}
-  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(255,91,72,.6)} 70%{box-shadow:0 0 0 14px rgba(255,91,72,0)} 100%{box-shadow:0 0 0 0 rgba(255,91,72,0)}}
+  .live{display:inline-flex; align-items:center; gap:9px; font-weight:800; letter-spacing:2px;
+        text-transform:uppercase; font-size:clamp(12px,1.4vw,17px); color:#ff9a3c;}
+  .dot{width:13px; height:13px; border-radius:50%; background:var(--coral); box-shadow:0 0 0 0 rgba(236,102,2,.7); animation:ping 1.6s infinite;}
+  .live.off .dot{background:#5c6a70; animation:none;}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(236,102,2,.6)} 70%{box-shadow:0 0 0 14px rgba(236,102,2,0)} 100%{box-shadow:0 0 0 0 rgba(236,102,2,0)}}
   .meta{color:var(--slate); font-size:clamp(12px,1.3vw,16px); text-align:right; line-height:1.4;}
   .meta b{color:var(--foam);}
 
@@ -59,28 +62,32 @@
 
   /* Podium */
   .podium{display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:14px; align-items:end; margin-bottom:2vh;}
-  .pod{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12);
+  .pod{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10);
        border-radius:18px 18px 0 0; padding:14px 12px; text-align:center; position:relative; overflow:hidden;}
   .pod .medal{font-size:clamp(26px,3.4vw,44px); line-height:1;}
   .pod .pname{font-weight:bold; font-size:clamp(15px,1.8vw,24px); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .pod .pscore{font-family:"Arial Black",sans-serif; font-style:italic; font-variant-numeric:tabular-nums;
+  .pod .pscore{font-family:"Arial Black",sans-serif; font-style:normal; font-variant-numeric:tabular-nums;
                font-size:clamp(20px,2.6vw,38px); line-height:1;}
-  .pod.p1{border-color:rgba(255,210,74,.6); background:linear-gradient(180deg,rgba(255,210,74,.18),rgba(255,210,74,.04)); padding-bottom:5vh;}
-  .pod.p1 .pscore{color:var(--gold3);}
-  .pod.p2{border-color:rgba(207,224,232,.4); padding-bottom:3.2vh;} .pod.p2 .pscore{color:var(--silver);}
-  .pod.p3{border-color:rgba(227,155,90,.45); padding-bottom:2.4vh;} .pod.p3 .pscore{color:var(--bronze);}
+  .pod.p1{border-color:rgba(236,102,2,.7); padding-bottom:5vh;
+          background:linear-gradient(180deg,rgba(236,102,2,.26),rgba(236,102,2,.03));
+          box-shadow:0 0 34px rgba(236,102,2,.28) inset;}
+  .pod.p1 .pscore{color:#ff9a3c;}
+  .pod.p2{border-color:rgba(25,183,196,.5); padding-bottom:3.2vh;
+          background:linear-gradient(180deg,rgba(25,183,196,.14),rgba(25,183,196,.02));}
+  .pod.p2 .pscore{color:var(--cyan);}
+  .pod.p3{border-color:rgba(247,166,0,.42); padding-bottom:2.4vh;} .pod.p3 .pscore{color:var(--gold);}
 
   /* Liste 4+ */
   .list{display:flex; flex-direction:column; gap:9px; overflow:hidden;}
   .rowE{display:grid; grid-template-columns:64px 1fr auto; align-items:center; gap:16px;
         background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07);
         border-radius:14px; padding:min(1.7vh,16px) 22px;}
-  .rowE .rank{font-family:"Arial Black",sans-serif; font-style:italic; color:var(--slate);
+  .rowE .rank{font-family:"Arial Black",sans-serif; font-style:normal; color:var(--slate);
               font-size:clamp(18px,2vw,28px); text-align:center;}
   .rowE .name{font-size:clamp(16px,1.9vw,26px); font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .rowE .score{font-family:"Arial Black",sans-serif; font-style:italic; color:var(--gold);
+  .rowE .score{font-family:"Arial Black",sans-serif; font-style:normal; color:var(--gold);
                font-variant-numeric:tabular-nums; font-size:clamp(18px,2.1vw,30px);}
-  @keyframes flash{0%{background:rgba(34,211,238,.5); transform:scale(1.015);} 100%{background:rgba(255,255,255,.045); transform:none;}}
+  @keyframes flash{0%{background:rgba(236,102,2,.55); transform:scale(1.015);} 100%{background:rgba(255,255,255,.045); transform:none;}}
   .flash{animation:flash 1.4s ease-out;}
 
   .empty{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;
@@ -127,9 +134,9 @@
       <section style="display:flex; flex-direction:column; min-height:0;">
         <div class="podium" id="podium"></div>
         <div class="list" id="list"></div>
-        <div class="empty" id="empty" style="display:none;">
-          <div class="big">Noch keine Ergebnisse 🌊</div>
-          <div>Sei die oder der Erste – scanne den QR-Code und leg los!</div>
+        <div class="empty" id="empty">
+          <div class="big" id="emptyBig">Bestenliste wird geladen…</div>
+          <div id="emptySub">Gleich geht's los – scanne den QR-Code und leg los!</div>
         </div>
       </section>
 
@@ -173,6 +180,8 @@ function render(raw){
   $('total').textContent=scores.length;
   const board=topPerName(scores);
   const empty=board.length===0;
+  if(empty){ $('emptyBig').textContent='Noch keine Ergebnisse 🌊';
+             $('emptySub').textContent='Sei die oder der Erste – scanne den QR-Code und leg los!'; }
   $('empty').style.display=empty?'flex':'none';
   $('podium').style.display=empty?'none':'grid';
   $('list').style.display=empty?'none':'flex';
@@ -222,7 +231,14 @@ async function refresh(){
     const d=await r.json();
     render(d.scores||[]);
     lastUpdate=Date.now(); setLive(true);
-  }catch(e){ setLive(false); }
+  }catch(e){
+    setLive(false);
+    if(!started){   // noch nie Daten gehabt – Hinweis statt leerer Fläche
+      $('emptyBig').textContent='Keine Verbindung';
+      $('emptySub').textContent='Bestenliste kann gerade nicht geladen werden – neuer Versuch läuft…';
+      $('empty').style.display='flex';
+    }
+  }
 }
 
 function tickAgo(){
